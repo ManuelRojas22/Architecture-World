@@ -10,10 +10,8 @@
   <meta property="og:description" content="Explora. Comprende. Construye. Aprende arquitecturas de software en un mundo 3D.">
   <meta property="og:type" content="website">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f1815'/%3E%3Cpath d='M32 10 L52 22 L32 34 L12 22 Z' fill='%23f3df7a'/%3E%3Cpath d='M18 30 L32 38 L46 30 L46 44 L32 52 L18 44 Z' fill='%2365d6b3'/%3E%3C/svg%3E">
-  <script type="module" crossorigin src="./assets/index-B5PWrrL2.js"></script>
-  <link rel="modulepreload" crossorigin href="./assets/three-RkbBJErr.js">
-  <link rel="modulepreload" crossorigin href="./assets/three-examples-CL0ty8SG.js">
-  <link rel="stylesheet" crossorigin href="./assets/index-Dpfhl0qQ.css">
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./src/main.js"></script>
 </head>
 <body>
   <div id="app"></div>
@@ -84,6 +82,28 @@
           <option value="4096">4096</option>
         </select>
       </div>
+      <div class="slider-row">
+        <span>Resolución</span>
+        <select id="opt-resolution" aria-label="Resolución de renderizado">
+          <option value="auto">Automática</option>
+          <option value="720">HD · 720p</option>
+          <option value="1080">Full HD · 1080p</option>
+          <option value="1440">QHD · 1440p</option>
+          <option value="2160">4K UHD · 2160p</option>
+        </select>
+      </div>
+      <div class="slider-row">
+        <span>Límite de FPS</span>
+        <select id="opt-fps-limit" aria-label="Límite de FPS">
+          <option value="0">Sin límite</option>
+          <option value="240">240 FPS</option>
+          <option value="144">144 FPS</option>
+          <option value="120">120 FPS</option>
+          <option value="60">60 FPS</option>
+          <option value="30">30 FPS</option>
+        </select>
+      </div>
+
       <div class="settings-group-title">Controles</div>
       <div class="slider-row">
         <span>Sensibilidad ratón</span>
@@ -117,7 +137,7 @@
       <p class="help-text" id="save-status">Tu progreso se guarda automáticamente en este navegador.</p>
 
       <button id="opt-reset" class="settings-reset">Restablecer opciones</button>
-      <div class="version-badge">ARCHITECTURE WORLD · v1.1.0</div>
+      <div class="version-badge">ARCHITECTURE WORLD · v1.1.2</div>
     </div>
   </div>
 
