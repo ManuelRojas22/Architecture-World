@@ -71,7 +71,8 @@ function initGame() {
     () => openCompendium(),
     () => openSettings(),
     isReturningUser,
-    stats
+    stats,
+    GAME_VERSION
   );
 }
 
