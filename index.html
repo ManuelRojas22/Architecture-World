@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>ARCHITECTURE WORLD — Explora. Comprende. Construye.</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Videojuego 3D para aprender arquitecturas de software explorando un mundo abierto: microservicios, monolítica, serverless, por capas, dirigida por eventos y headless.">
+  <meta name="theme-color" content="#0f1815">
+  <meta property="og:title" content="ARCHITECTURE WORLD">
+  <meta property="og:description" content="Explora. Comprende. Construye. Aprende arquitecturas de software en un mundo 3D.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f1815'/%3E%3Cpath d='M32 10 L52 22 L32 34 L12 22 Z' fill='%23f3df7a'/%3E%3Cpath d='M18 30 L32 38 L46 30 L46 44 L32 52 L18 44 Z' fill='%2365d6b3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./src/main.js"></script>
+</head>
+<body>
+  <div id="app"></div>
+
+  <!-- Botones de esquina -->
+  <div class="corner-actions">
+    <button id="help-btn" title="Ayuda (H)" aria-label="Ayuda">?</button>
+    <button id="settings-btn" title="Configuración" aria-label="Configuración">⚙</button>
+  </div>
+
+  <!-- Panel de ayuda -->
+  <div id="help-panel" class="side-panel hidden" role="dialog" aria-label="Ayuda">
+    <div class="settings-header">
+      <h3>Cómo jugar</h3>
+      <button class="panel-close" data-close="help-panel" aria-label="Cerrar ayuda">×</button>
+    </div>
+    <div class="settings-content">
+      <div class="settings-group-title">Controles</div>
+      <ul class="help-list">
+        <li><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span> Moverte</li>
+        <li><span><kbd>Shift</kbd></span> Correr</li>
+        <li><span><kbd>Espacio</kbd></span> Saltar</li>
+        <li><span><kbd>Ratón</kbd></span> Mirar (clic para capturarlo)</li>
+        <li><span><kbd>E</kbd></span> Interactuar con estructuras</li>
+        <li><span><kbd>C</kbd></span> Compendio</li>
+        <li><span><kbd>H</kbd></span> Esta ayuda</li>
+        <li><span><kbd>ESC</kbd></span> Cerrar paneles</li>
+      </ul>
+      <div class="settings-group-title">Objetivo</div>
+      <p class="help-text">Explora las 6 estructuras del mapa, pulsa <strong>E</strong> cerca de cada una para estudiarla y completa tu compendio de arquitecturas.</p>
+    </div>
+  </div>
+
+  <!-- Toast de notificaciones -->
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+</body>
+</html>
