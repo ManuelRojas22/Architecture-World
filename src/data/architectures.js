@@ -46,4 +46,55 @@ export const architectures = [
       </svg>`
     }
   },
+  {
+    id: 'serverless',
+    order: 3,
+    name: 'SERVERLESS',
+    shortName: 'Serverless',
+    position: { x: -102, z: 59 },
+    color: 0x00ff88,
+    description: {
+      what: 'Ejecución de código en funciones efímeras gestionadas por el proveedor de nube; no hay servidores que administrar.',
+      how: 'Eventos (HTTP, colas, timers) disparan funciones stateless que se escalan automáticamente a cero cuando no hay carga.',
+      components: ['API Gateway', 'Funciones (FaaS)', 'Servicios gestionados (DB, Storage, Auth)', 'Event bus'],
+      advantages: ['Costo por uso', 'Escalado automático', 'Sin ops de servidores', 'Despliegue rápido'],
+      disadvantages: ['Cold start', 'Límites de tiempo/paquete', 'Vendor lock‑in', 'Depuración distribuida'],
+      examples: ['AWS Lambda', 'Azure Functions', 'Google Cloud Functions'],
+      diagramSvg: `<svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+        <style>.cloud{fill:#00ff88;opacity:0.15;stroke:#00ff88;stroke-width:2;}.fn{fill:#00ff88;opacity:0.2;stroke:#00ff88;stroke-width:2;rx:6;}.label{fill:#fff;font-family:sans-serif;font-size:12px;text-anchor:middle;}.arrow{stroke:#00ff88;stroke-width:2;marker-end:url(#arr);}</style>
+        <defs><marker id="arr" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#00ff88"/></marker></defs>
+        <ellipse class="cloud" cx="200" cy="30" rx="120" ry="30"/><text class="label" x="200" y="35">Nube / Proveedor</text>
+        <rect class="fn" x="80" y="90" width="80" height="40"/><text class="label" x="120" y="115">Fn Auth</text>
+        <rect class="fn" x="180" y="90" width="80" height="40"/><text class="label" x="220" y="115">Fn Pedido</text>
+        <rect class="fn" x="280" y="90" width="80" height="40"/><text class="label" x="320" y="115">Fn Pago</text>
+        <line class="arrow" x1="200" y1="60" x2="120" y2="90"/><line class="arrow" x1="200" y1="60" x2="220" y2="90"/><line class="arrow" x1="200" y1="60" x2="320" y2="90"/>
+        <ellipse class="cloud" cx="200" cy="170" rx="100" ry="25"/><text class="label" x="200" y="175">Servicios gestionados</text>
+      </svg>`
+    }
+  },
+  {
+    id: 'encapas',
+    order: 4,
+    name: 'EN CAPAS (N-TIER)',
+    shortName: 'En Capas',
+    position: { x: -9, z: 108 },
+    color: 0xff00ff,
+    description: {
+      what: 'Separa la aplicación en capas horizontales (presentación, negocio, datos) con dependencias unidireccionales.',
+      how: 'Cada capa expone servicios a la superior; la capa de datos es la única que accede a la BD.',
+      components: ['Presentación (UI)', 'Lógica de negocio', 'Acceso a datos / Repositorios', 'Base de datos'],
+      advantages: ['Separación de responsabilidades', 'Testabilidad por capas', 'Reutilización de negocio', 'Mantenibilidad'],
+      disadvantages: ['Rigidez en cambios transversales', 'Posible "capas de dios"', 'Latencia por cruce de capas', 'Acoplamiento a BD'],
+      examples: ['Java EE clásico', '.NET 3‑tier', 'Aplicaciones ERP'],
+      diagramSvg: `<svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+        <style>.layer{fill:#ff00ff;opacity:0.12;stroke:#ff00ff;stroke-width:2;rx:6;}.label{fill:#fff;font-family:sans-serif;font-size:13px;text-anchor:middle;}.arrow{stroke:#ff00ff;stroke-width:2;marker-end:url(#a);}</style>
+        <defs><marker id="a" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#ff00ff"/></marker></defs>
+        <rect class="layer" x="50" y="20" width="300" height="45"/><text class="label" x="200" y="50">Presentación</text>
+        <line class="arrow" x1="200" y1="65" x2="200" y2="80"/>
+        <rect class="layer" x="50" y="80" width="300" height="45"/><text class="label" x="200" y="110">Negocio</text>
+        <line class="arrow" x1="200" y1="125" x2="200" y2="140"/>
+        <rect class="layer" x="50" y="140" width="300" height="45"/><text class="label" x="200" y="170">Datos</text>
+      </svg>`
+    }
+  },
 ];
