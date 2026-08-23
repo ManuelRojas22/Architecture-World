@@ -97,4 +97,58 @@ export const architectures = [
       </svg>`
     }
   },
+  {
+    id: 'eventos',
+    order: 5,
+    name: 'BASADA EN EVENTOS',
+    shortName: 'Eventos',
+    position: { x: 98, z: 82 },
+    color: 0xff4444,
+    description: {
+      what: 'Los componentes se comunican emitiendo y consumiendo eventos asíncronos a través de un bus o broker.',
+      how: 'Productores publican eventos; consumidores suscritos reaccionan sin conocer al productor (desacoplamiento temporal).',
+      components: ['Productores de eventos', 'Event Bus / Broker (Kafka, RabbitMQ)', 'Consumidores / Handlers', 'Event Store (opcional)'],
+      advantages: ['Desacoplamiento fuerte', 'Escalabilidad horizontal', 'Resiliencia y replay', 'Extensibilidad fácil'],
+      disadvantages: ['Complejidad de depuración', 'Consistencia eventual', 'Ordenación de eventos', 'Infraestructura extra'],
+      examples: ['Sistemas IoT', 'Trading financiero', 'Microservicios con Kafka'],
+      diagramSvg: `<svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+        <style>.node{fill:#ff4444;opacity:0.15;stroke:#ff4444;stroke-width:2;rx:8;}.bus{fill:#ff4444;opacity:0.1;stroke:#ff4444;stroke-width:3;rx:12;}.label{fill:#fff;font-family:sans-serif;font-size:12px;text-anchor:middle;}.arrow{stroke:#ff4444;stroke-width:2;marker-end:url(#e);}</style>
+        <defs><marker id="e" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#ff4444"/></marker></defs>
+        <rect class="node" x="20" y="30" width="100" height="40"/><text class="label" x="70" y="55">Productor A</text>
+        <rect class="node" x="20" y="130" width="100" height="40"/><text class="label" x="70" y="155">Productor B</text>
+        <rect class="bus" x="150" y="50" width="100" height="100"/><text class="label" x="200" y="105">Event Bus</text>
+        <rect class="node" x="280" y="30" width="100" height="40"/><text class="label" x="330" y="55">Consumidor 1</text>
+        <rect class="node" x="280" y="130" width="100" height="40"/><text class="label" x="330" y="155">Consumidor 2</text>
+        <line class="arrow" x1="120" y1="50" x2="150" y2="80"/><line class="arrow" x1="120" y1="150" x2="150" y2="120"/>
+        <line class="arrow" x1="250" y1="80" x2="280" y2="50"/><line class="arrow" x1="250" y1="120" x2="280" y2="150"/>
+      </svg>`
+    }
+  },
+  {
+    id: 'headless',
+    order: 6,
+    name: 'HEADLESS',
+    shortName: 'Headless',
+    position: { x: 117, z: -42 },
+    color: 0x8844ff,
+    description: {
+      what: 'Backend expone APIs (REST/GraphQL) sin frontend acoplado; cualquier canal (web, móvil, IoT) consume la misma API.',
+      how: 'El "head" (UI) se separa completamente; el CMS o motor de negocio sirve contenido vía API a múltiples frontends.',
+      components: ['API Headless (Content/Commerce)', 'Panel de administración', 'Frontends múltiples (Web, App, Voice)', 'CDN / Edge'],
+      advantages: ['Omnicanal real', 'Frontend libre (React, Vue, nativo)', 'Escalabilidad de frontend separada', 'Reutilización de contenido'],
+      disadvantages: ['Mayor esfuerzo inicial', 'Gestión de múltiples frontends', 'Complejidad de preview', 'Auth compartida'],
+      examples: ['Contentful', 'Strapi', 'Shopify Hydrogen', 'Sanity'],
+      diagramSvg: `<svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+        <style>.core{fill:#8844ff;opacity:0.15;stroke:#8844ff;stroke-width:2;rx:10;}.head{fill:#8844ff;opacity:0.12;stroke:#8844ff;stroke-width:2;rx:8;}.label{fill:#fff;font-family:sans-serif;font-size:12px;text-anchor:middle;}.arrow{stroke:#8844ff;stroke-width:2;marker-end:url(#h);}</style>
+        <defs><marker id="h" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#8844ff"/></marker></defs>
+        <rect class="core" x="130" y="60" width="140" height="80"/><text class="label" x="200" y="105">Backend / API</text>
+        <rect class="head" x="20" y="20" width="90" height="40"/><text class="label" x="65" y="45">Web</text>
+        <rect class="head" x="20" y="140" width="90" height="40"/><text class="label" x="65" y="165">Móvil</text>
+        <rect class="head" x="290" y="20" width="90" height="40"/><text class="label" x="335" y="45">IoT</text>
+        <rect class="head" x="290" y="140" width="90" height="40"/><text class="label" x="335" y="165">Voice</text>
+        <line class="arrow" x1="130" y1="80" x2="110" y2="40"/><line class="arrow" x1="130" y1="120" x2="110" y2="160"/>
+        <line class="arrow" x1="270" y1="80" x2="290" y2="40"/><line class="arrow" x1="270" y1="120" x2="290" y2="160"/>
+      </svg>`
+    }
+  }
 ];
