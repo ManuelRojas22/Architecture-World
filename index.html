@@ -10,8 +10,10 @@
   <meta property="og:description" content="Explora. Comprende. Construye. Aprende arquitecturas de software en un mundo 3D.">
   <meta property="og:type" content="website">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f1815'/%3E%3Cpath d='M32 10 L52 22 L32 34 L12 22 Z' fill='%23f3df7a'/%3E%3Cpath d='M18 30 L32 38 L46 30 L46 44 L32 52 L18 44 Z' fill='%2365d6b3'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="./style.css">
-  <script type="module" src="./src/main.js"></script>
+  <script type="module" crossorigin src="./assets/index-B5PWrrL2.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/three-RkbBJErr.js">
+  <link rel="modulepreload" crossorigin href="./assets/three-examples-CL0ty8SG.js">
+  <link rel="stylesheet" crossorigin href="./assets/index-Dpfhl0qQ.css">
 </head>
 <body>
   <div id="app"></div>
@@ -42,6 +44,80 @@
       </ul>
       <div class="settings-group-title">Objetivo</div>
       <p class="help-text">Explora las 6 estructuras del mapa, pulsa <strong>E</strong> cerca de cada una para estudiarla y completa tu compendio de arquitecturas.</p>
+    </div>
+  </div>
+
+  <!-- Settings panel -->
+  <div id="settings-panel" class="side-panel hidden" role="dialog" aria-label="Configuración">
+    <div class="settings-header">
+      <h3>Configuración</h3>
+      <button class="panel-close" data-close="settings-panel" aria-label="Cerrar configuración">×</button>
+    </div>
+    <div class="settings-content">
+      <div class="settings-group-title">Gráficos</div>
+      <label><input type="checkbox" id="opt-bloom" checked> Bloom</label>
+      <label><input type="checkbox" id="opt-shadows" checked> Sombras</label>
+      <label><input type="checkbox" id="opt-grass" checked> Hierba alta</label>
+      <label><input type="checkbox" id="opt-fireflies" checked> Luciérnagas</label>
+      <label><input type="checkbox" id="opt-clouds" checked> Nubes</label>
+      <label><input type="checkbox" id="opt-reflections" checked> Reflejos</label>
+      <div class="slider-row">
+        <span>Intensidad reflejos</span>
+        <input type="range" id="opt-reflect-int" min="0" max="1" step="0.05" value="0.35" aria-label="Intensidad de reflejos">
+        <output id="reflect-int-val">0.35</output>
+      </div>
+      <div class="slider-row">
+        <span>Exposición</span>
+        <input type="range" id="opt-exposure" min="0.5" max="2" step="0.05" value="1.1" aria-label="Exposición">
+        <output id="exp-val">1.1</output>
+      </div>
+      <div class="slider-row">
+        <span>Densidad niebla</span>
+        <input type="range" id="opt-fog" min="0.002" max="0.015" step="0.001" value="0.0055" aria-label="Densidad de niebla">
+        <output id="fog-val">0.0055</output>
+      </div>
+      <div class="slider-row">
+        <span>Mapa sombras</span>
+        <select id="opt-shadow-map" aria-label="Tamaño del mapa de sombras">
+          <option value="1024">1024</option>
+          <option value="2048" selected>2048</option>
+          <option value="4096">4096</option>
+        </select>
+      </div>
+      <div class="settings-group-title">Controles</div>
+      <div class="slider-row">
+        <span>Sensibilidad ratón</span>
+        <input type="range" id="opt-sensitivity" min="0.2" max="3" step="0.1" value="1" aria-label="Sensibilidad del ratón">
+        <output id="sens-val">1.0</output>
+      </div>
+      <div class="slider-row">
+        <span>Velocidad jugador</span>
+        <input type="range" id="opt-speed" min="2" max="10" step="0.5" value="4" aria-label="Velocidad del jugador">
+        <output id="speed-val">4.0</output>
+      </div>
+      <div class="slider-row">
+        <span>Campo de visión</span>
+        <input type="range" id="opt-fov" min="45" max="95" step="1" value="55" aria-label="Campo de visión">
+        <output id="fov-val">55°</output>
+      </div>
+
+      <div class="settings-group-title">Mundo</div>
+      <label><input type="checkbox" id="opt-day-auto" checked> Ciclo día/noche automático</label>
+      <div class="slider-row">
+        <span>Hora del día</span>
+        <input type="range" id="opt-day-time" min="0" max="24" step="0.5" value="12" disabled aria-label="Hora del día">
+        <output id="day-val">12h</output>
+      </div>
+
+      <div class="settings-group-title">Partida</div>
+      <div class="save-actions">
+        <button id="opt-export" class="settings-action">Exportar progreso</button>
+        <button id="opt-import" class="settings-action">Importar progreso</button>
+      </div>
+      <p class="help-text" id="save-status">Tu progreso se guarda automáticamente en este navegador.</p>
+
+      <button id="opt-reset" class="settings-reset">Restablecer opciones</button>
+      <div class="version-badge">ARCHITECTURE WORLD · v1.1.0</div>
     </div>
   </div>
 
