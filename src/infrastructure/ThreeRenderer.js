@@ -15,6 +15,9 @@ export class ThreeRenderer {
         low:    { maxDPR: 1.0,  shadowMap: 1024, grass: 1400, flowers: 60,  groundSeg: 96,  film: false },
       }[this.qualityTier];
       this.resScale = 1;
+      this.resMode = 'auto';
+      this.fpsLimit = null;
+      this._lastFrame = 0;
       this._perfAccum = 0;
       this._perfFrames = 0;
       this._perfLast = 0;
@@ -579,13 +582,41 @@ export class ThreeRenderer {
     return 'high';
   }
 
-  basePixelRatio() {
-    return Math.min(window.devicePixelRatio || 1, this.cfg.maxDPR) * this.resScale;
+  // mode: 'auto' (según pantalla/calidad) o altura objetivo del buffer: 1080, 1440…
+  setResolutionMode(mode) {
+    const n = typeof mode === 'string' ? parseInt(mode, 10) : mode;
+    this.resMode = Number.isFinite(n) && n >= 360 ? n : 'auto';
+    this.applyRenderSize();
+  }
+
+  // fps: número (0 o inválido = sin límite). El bucle llama a beginFrame() y
+  // salta los frames sobrantes en lugar de renderizar más rápido que el límite.
+  setFpsLimit(fps) {
+    const n = typeof fps === 'string' ? parseFloat(fps) : fps;
+    this.fpsLimit = Number.isFinite(n) && n >= 10 ? n : null;
+    this._lastFrame = 0;
+  }
+
+  beginFrame() {
+    if (!this.fpsLimit) return true;
+    const now = performance.now();
+    if (now - this._lastFrame < 1000 / this.fpsLimit - 0.5) return false;
+    this._lastFrame = now;
+    return true;
+  }
+
+  targetPixelRatio(height) {
+    if (this.resMode === 'auto') {
+      return Math.min(window.devicePixelRatio || 1, this.cfg.maxDPR);
+    }
+    // Renderiza al alto solicitado aunque supere la ventana; el navegador
+    // reescala el canvas por CSS, igual que un juego en ventana.
+    return THREE.MathUtils.clamp(this.resMode / height, 0.25, 4);
   }
 
   applyRenderSize() {
     const { width, height } = this.getViewport();
-    const pr = this.basePixelRatio();
+    const pr = this.targetPixelRatio(height) * this.resScale;
     this.renderer.setPixelRatio(pr);
     if (this.composer) this.composer.setPixelRatio(pr);
     this.camera.aspect = width / height;
@@ -593,7 +624,6 @@ export class ThreeRenderer {
     this.renderer.setSize(width, height);
     if (this.composer) this.composer.setSize(width, height);
   }
-
   setupResizeHandling() {
     let resizeTimer = null;
     const requestResize = () => {
@@ -641,6 +671,8 @@ export class ThreeRenderer {
 
   adjustResolution(fps) {
     if (!isFinite(fps)) return;
+    // Con límite de FPS activo, acercarse al límite NO es bajo rendimiento
+    if (this.fpsLimit && fps > this.fpsLimit * 0.75) return;
     if (fps < 45 && this.resScale > 0.6) {
       this.resScale = Math.max(0.6, this.resScale - 0.12);
       this.applyRenderSize();
