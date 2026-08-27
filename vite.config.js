@@ -1,3 +1,10 @@
+/**
+ * @file vite.config.js
+ * @description Configuración de Vite para el proyecto Architecture World.
+ * Define rutas relativas, opciones de compilación (target ES2022, minificación
+ * con Terser eliminando console.logs), y separación de chunks para Three.js
+ * y sus módulos de postprocesamiento.
+ */
 import { defineConfig } from 'vite'
 
 export default defineConfig({

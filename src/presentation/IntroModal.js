@@ -1,6 +1,16 @@
 import { Storage } from '../infrastructure/Storage.js';
 
+/**
+ * @class IntroModal
+ * @description Modal de introducción para nuevos usuarios. Presenta 2 pasos:
+ * 1. Bienvenida y explicación del concepto del juego
+ * 2. Misión del jugador
+ * Se omite si el usuario ya vio la intro (Storage.hasSeenIntro).
+ */
 export class IntroModal {
+  /**
+   * @param {() => void} onComplete - Callback al completar u omitir el modal
+   */
   constructor(onComplete) {
     this.onComplete = onComplete;
     this.step = 0;
@@ -41,6 +51,10 @@ export class IntroModal {
     document.addEventListener('keydown', this.keyHandler);
   }
 
+  /**
+   * Muestra un paso específico del intro.
+   * @param {number} index - Índice del paso (0 o 1)
+   */
   showStep(index) {
     const steps = [
       {
@@ -75,6 +89,7 @@ export class IntroModal {
     skipBtn.style.display = index === steps.length - 1 ? 'none' : 'block';
   }
 
+  /** Avanza al siguiente paso o completa el modal si está en el último. */
   nextStep() {
     if (this.completed) return;
     const steps = 2;
@@ -86,6 +101,10 @@ export class IntroModal {
     }
   }
 
+  /**
+   * Completa el modal: marca intro como vista en Storage,
+   * anima salida y ejecuta callback onComplete.
+   */
   complete() {
     if (this.completed) return;
     this.completed = true;

@@ -1,12 +1,36 @@
+/**
+ * @file BuildingFactory.js
+ * @description Fábrica de edificios 3D para cada arquitectura de software.
+ * Crea modelos detallados con animaciones (pulsos, flotadores, rotaciones,
+ * parpadeos, chispas), hitboxes de interacción y colliders físicos.
+ * Cada edificio tiene un pedestal circular base con anillo de brillo.
+ */
+
 import * as THREE from 'three';
 import { architectures } from '../data/architectures.js';
 
+/**
+ * @class BuildingFactory
+ * @description Crea y gestiona los 6 edificios 3D que representan cada
+ * arquitectura de software. Cada edificio es un THREE.Group con meshes,
+ * materiales PBR, luces puntuales y elementos animados. Proporciona
+ * hitboxes de interacción y colliders físicos para el gameplay.
+ */
 export class BuildingFactory {
+  /**
+   * @param {THREE.Scene} scene - Escena Three.js donde se añaden los edificios
+   */
   constructor(scene) {
     this.scene = scene;
     this.buildings = [];
   }
 
+  /**
+   * Crea todos los edificios de las 6 arquitecturas.
+   * Para cada una: construye el mesh, lo posiciona, calcula hitbox (con margen +5)
+   * y collider físico (solo geometría sólida, excluye elementos decorativos con
+   * name='no-collide').
+   */
   createAll() {
     const HITBOX_MARGIN = 5;
     const COLLIDER_MARGIN = 0.6;
@@ -35,6 +59,13 @@ export class BuildingFactory {
     });
   }
 
+  /**
+   * Construye el modelo 3D de una arquitectura específica.
+   * Incluye pedestal circular base, anillo de brillo y modelo específico
+   * según el ID de la arquitectura.
+   * @param {Object} def - Definición de la arquitectura
+   * @returns {THREE.Group} Grupo con todos los meshes del edificio
+   */
   build(def) {
     const group = new THREE.Group();
     const baseColor = def.color;
@@ -82,6 +113,15 @@ export class BuildingFactory {
     return group;
   }
 
+  /**
+   * Añade un pulso animado que viaja entre dos puntos.
+   * @param {THREE.Group} group - Grupo padre
+   * @param {THREE.Vector3} from - Punto de inicio
+   * @param {THREE.Vector3} to - Punto final
+   * @param {number} color - Color del pulso
+   * @param {number} [speed=0.5] - Velocidad de viaje
+   * @param {number} [t=0] - Fase inicial (0-1)
+   */
   addPulse(group, from, to, color, speed, t) {
     const mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.9 });
     const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 8), mat);
@@ -92,6 +132,15 @@ export class BuildingFactory {
     group.add(mesh);
   }
 
+  /**
+   * Crea una pantalla/plano rectangular con material basic.
+   * @param {THREE.Group} group - Grupo padre
+   * @param {number} w - Ancho
+   * @param {number} h - Alto
+   * @param {number} color - Color
+   * @param {number} [opacity=0.6] - Opacidad
+   * @returns {THREE.Mesh} Mesh de la pantalla
+   */
   makeScreen(group, w, h, color, opacity) {
     const mat = new THREE.MeshBasicMaterial({
       color,
@@ -104,6 +153,14 @@ export class BuildingFactory {
     return mesh;
   }
 
+  /**
+   * Añade una línea de brillo entre dos puntos.
+   * @param {THREE.Group} group - Grupo padre
+   * @param {THREE.Vector3} a - Punto inicio
+   * @param {THREE.Vector3} b - Punto final
+   * @param {number} color - Color de la línea
+   * @param {number} [opacity=0.4] - Opacidad
+   */
   addGlowLine(group, a, b, color, opacity) {
     const geo = new THREE.BufferGeometry().setFromPoints([a, b]);
     const line = new THREE.Line(geo, new THREE.LineBasicMaterial({
@@ -114,7 +171,14 @@ export class BuildingFactory {
     group.add(line);
   }
 
-  // MICROSERVICIOS: hub central + módulos independientes conectados por tuberías.
+  /**
+   * Construye el edificio de Microservicios: hub central con domo y antena,
+   * 5 módulos independientes conectados por tuberías, API Gateway,
+   * pantalla holográfica, racks de servidor y pulsos de datos animados.
+   * @param {THREE.Group} group - Grupo padre
+   * @param {number} color - Color base (cyan)
+   * @param {Function} M - Función auxiliar para crear materiales PBR
+   */
   buildMicroservicios(group, color, M) {
     const hubBaseMat = M(0x0e7a7a, { roughness: 0.4, metalness: 0.5 });
     const hubMat = M(color, { roughness: 0.35, metalness: 0.4 });
@@ -271,7 +335,13 @@ export class BuildingFactory {
     group.add(pLight);
   }
 
-  // MONOLÍTICA: fortaleza única masiva con ventanas repetitivas.
+  /**
+   * Construye el edificio de Monolítica: fortaleza masiva con 4 torretas,
+   * ventanas repetitivas con brillo, entrada con rejas, cornisa y banderas.
+   * @param {THREE.Group} group - Grupo padre
+   * @param {number} color - Color base (naranja)
+   * @param {Function} M - Función auxiliar para crear materiales PBR
+   */
   buildMonolitica(group, color, M) {
     const darkMat = M(0x8b6000, { roughness: 0.55, metalness: 0.25 });
     const trimMat = M(0x2a1a08, { roughness: 0.65, metalness: 0.15 });
@@ -389,7 +459,13 @@ export class BuildingFactory {
     group.userData.windowGlow = windowMat;
   }
 
-  // SERVERLESS: nube etérea con contenedores de funciones flotantes.
+  /**
+   * Construye el edificio de Serverless: nube etérea con columnas,
+   * contenedores de funciones flotantes, anillos orbitales y chispas animadas.
+   * @param {THREE.Group} group - Grupo padre
+   * @param {number} color - Color base (verde)
+   * @param {Function} M - Función auxiliar para crear materiales PBR
+   */
   buildServerless(group, color, M) {
     const cloudMat = M(color, {
       transparent: true, opacity: 0.22,
@@ -506,7 +582,14 @@ export class BuildingFactory {
     group.userData.sparks = sparks;
   }
 
-  // EN CAPAS: estratos horizontales con separación visible.
+  /**
+   * Construye el edificio de En Capas: estratos horizontales apilados
+   * con separación visible, columnas entre capas, flujo de datos vertical
+   * y estructura de soporte luminosa.
+   * @param {THREE.Group} group - Grupo padre
+   * @param {number} color - Color base (magenta)
+   * @param {Function} M - Función auxiliar para crear materiales PBR
+   */
   buildEnCapas(group, color, M) {
     const foundationMat = M(0x1a001a, { roughness: 0.6, metalness: 0.3 });
     const layerColors = [0xff00ff, 0xcc00cc, 0x990099];
@@ -592,7 +675,14 @@ export class BuildingFactory {
     group.add(layerLight);
   }
 
-  // EVENTOS: anillo de bus central con nodos productor/consumidor.
+  /**
+   * Construye el edificio de Eventos: anillo de bus central, 4 nodos
+   * productor/consumidor, líneas de conexión, pulsos de eventos animados
+   * y pods flotantes.
+   * @param {THREE.Group} group - Grupo padre
+   * @param {number} color - Color base (rojo)
+   * @param {Function} M - Función auxiliar para crear materiales PBR
+   */
   buildEventos(group, color, M) {
     const busMat = M(color, { emissive: 0x550000, emissiveIntensity: 0.65, metalness: 0.4, roughness: 0.3 });
     const standMat = M(0x3a1a1a, { roughness: 0.5, metalness: 0.3 });
@@ -717,7 +807,14 @@ export class BuildingFactory {
     group.userData.ringGlow = busMat;
   }
 
-  // HEADLESS: núcleo backend con canales "head" múltiples.
+  /**
+   * Construye el edificio de Headless: núcleo backend central, 4 canales
+   * "head" con colores distintos, kioscos con pantallas, conexiones de haz
+   * y rotador octaédrico en la antena.
+   * @param {THREE.Group} group - Grupo padre
+   * @param {number} color - Color base (morado)
+   * @param {Function} M - Función auxiliar para crear materiales PBR
+   */
   buildHeadless(group, color, M) {
     const baseMat = M(0x2d1a5e, { roughness: 0.5, metalness: 0.35 });
     const coreMat = M(color, { roughness: 0.3, metalness: 0.4 });
@@ -847,8 +944,24 @@ export class BuildingFactory {
     group.add(serverLight);
   }
 
+  /** @returns {Array<{mesh: THREE.Group, def: Object, hitbox: THREE.Box3, collider: THREE.Box3}>} Lista de edificios */
   getBuildings() { return this.buildings; }
 
+  /**
+   * Actualiza las animaciones de todos los edificios cada frame:
+   * - Anillos de pedestal rotando y pulsando
+   * - Anillos de columnas orbitando
+   * - Spinners rotando
+   * - Blinkers parpadeando
+   * - Chispas moviéndose sinusoidalmente
+   * - Pulson viajando entre puntos (lerp)
+   * - Flotadores elevándose/bajando
+   * - Pantallas cambiando color cíclicamente
+   * - Flujo de datos animado
+   * - Brillo de ventanas pulsando
+   * - Brillo de anillo de eventos pulsando
+   * @param {number} dt - Delta time en segundos
+   */
   update(dt) {
     this.animTime = (this.animTime || 0) + dt;
     const t = this.animTime;

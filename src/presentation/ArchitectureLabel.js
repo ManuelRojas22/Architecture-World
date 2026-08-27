@@ -1,7 +1,24 @@
+/**
+ * @file ArchitectureLabel.js
+ * @description Genera labels 3D flotantes (sprites) sobre cada arquitectura
+ * en el mundo del juego. Cada label muestra el número y nombre corto de
+ * la arquitectura con un fondo semitransparente y una flecha inferior.
+ */
+
 import * as THREE from 'three';
 import { architectures } from '../data/architectures.js';
 
+/**
+ * @class ArchitectureLabel
+ * @description Utilidad estática que crea y gestiona sprites de CanvasTexture
+ * posicionados sobre cada edificio. Los sprites se renderizan sin depthTest
+ * para siempre visibles y con renderOrder alto.
+ */
 export class ArchitectureLabel {
+  /**
+   * Crea un sprite label para cada arquitectura y lo añade a la escena.
+   * @param {THREE.Scene} scene - Escena Three.js
+   */
   static createAll(scene) {
     architectures.forEach(def => {
       const sprite = this.makeSprite(`${def.order}. ${def.shortName}`);
@@ -11,6 +28,12 @@ export class ArchitectureLabel {
     });
   }
 
+  /**
+   * Genera un sprite con CanvasTexture que muestra texto sobre fondo
+   * semitransparente redondeado con borde y flecha inferior.
+   * @param {string} text - Texto a mostrar (ej: "1. Microservicios")
+   * @returns {THREE.Sprite} Sprite listo para añadir a la escena
+   */
   static makeSprite(text) {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -70,6 +93,11 @@ export class ArchitectureLabel {
     return sprite;
   }
 
+  /**
+   * Función placeholder para actualización por frame.
+   * Los sprites de Three.js ya apuntan a la cámara automáticamente (billboard).
+   * @param {THREE.Camera} camera - Cámara de la escena (no utilizado)
+   */
   static updateAll(camera) {
     // Sprites auto face camera
   }

@@ -1,3 +1,12 @@
+/**
+ * @file ThreeRenderer.js
+ * @description Motor de renderizado 3D con Three.js. Configura escena, cámara,
+ * renderer WebGL, postprocesamiento (bloom, film grain), sistema de iluminación
+ * completo (sol, luna, hemisphere, ambient), cielo procedural con shader,
+ * suelo con relieve y reflejos, envmap para reflexiones, niebla exponencial,
+ * y ciclo día/noche automático con posibilidad de control manual.
+ */
+
 import * as THREE from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -5,6 +14,13 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { FilmPass } from 'three/examples/jsm/postprocessing/FilmPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 
+/**
+ * @class ThreeRenderer
+ * @description Clase principal de renderizado. Detecta calidad del hardware,
+ * configura el pipeline de renderizado con EffectComposer, gestiona el ciclo
+ * día/noche actualizando todas las luces, cielo y niebla, y proporciona
+ * métodos para ajustar cada parámetro gráfico desde la UI de opciones.
+ */
 export class ThreeRenderer {
   constructor() {
     try {
@@ -68,26 +84,56 @@ export class ThreeRenderer {
     }
   }
 
+  /** @param {boolean} enabled Activa/desactiva el efecto bloom */
   setBloom(enabled) { this.bloomPass.enabled = enabled; }
+  /** @param {boolean} enabled Activa/desactiva las sombras */
   setShadows(enabled) { this.renderer.shadowMap.enabled = enabled; }
+  /** @param {number} val Exposición de tono mapping (ACES Filmic) */
   setExposure(val) { this.renderer.toneMappingExposure = val; }
+  /** @param {number} val Densidad de la niebla exponencial */
   setFogDensity(val) { if (this.scene.fog) this.scene.fog.density = val; }
+  /**
+   * Ajusta el campo de visión de la cámara.
+   * @param {number} val - Ángulo en grados (ej: 55)
+   */
   setFOV(val) {
     this.camera.fov = val;
     this.camera.updateProjectionMatrix();
   }
+  /**
+   * Activa/desactiva las reflexiones del environment map.
+   * @param {boolean} enabled
+   */
   setReflections(enabled) {
     this.reflectionsEnabled = enabled;
     this.scene.environment = enabled ? (this.currentEnv || null) : null;
   }
+  /**
+   * Ajusta la intensidad de las reflexiones del environment.
+   * @param {number} val - Intensidad (0.0 - 2.0 recomendado)
+   */
   setReflectionsIntensity(val) {
     this.envIntensity = val;
     if (this.reflectionsEnabled !== false && 'environmentIntensity' in this.scene) {
       this.scene.environmentIntensity = val;
     }
   }
+  /**
+   * Alterna entre ciclo día/noche automático y control manual.
+   * @param {boolean} auto - true para ciclo automático
+   */
   setDayAuto(auto) { this.manualDay = !auto; }
+
+  /**
+   * Establece la hora del día manualmente (solo cuando dayAuto es false).
+   * @param {number} hours - Hora del día (6-18, donde 12 es mediodía)
+   */
   setDayTime(hours) { this.dayHours = hours; }
+
+  /**
+   * Cambia el tamaño del mapa de sombras de la luz direccional.
+   * @param {string} sizeStr - Tamaño en píxeles ('1024', '2048', '4096')
+   */
   setShadowMapSize(sizeStr) {
     const size = parseInt(sizeStr, 10);
     if (this.directionalLight && this.directionalLight.shadow) {
@@ -97,6 +143,14 @@ export class ThreeRenderer {
     }
   }
 
+  /**
+   * Configura el sistema de iluminación de la escena:
+   * - HemisphereLight (cielo suelo)
+   * - DirectionalLight principal (sol) con sombras
+   * - DirectionalLight de relleno
+   * - AmbientLight base
+   * - DirectionalLight de luna (inicialmente apagada)
+   */
   setupLights() {
     const hemi = new THREE.HemisphereLight(0xfff8e7, 0x5a7f57, 1.1);
     this.scene.add(hemi);
@@ -136,6 +190,13 @@ export class ThreeRenderer {
     this.sunHeight = Math.PI / 3;
   }
 
+  /**
+   * Crea el suelo del mundo con shader personalizado que incluye:
+   * - Relief procedural (sin textura externa)
+   * - Reflejo especular del sol y la luna
+   * - Fade de color hacia el horizonte
+   * También genera flores instanciadas sobre el terreno.
+   */
   setupGround() {
     const seg = this.cfg.groundSeg;
 
@@ -260,6 +321,15 @@ export class ThreeRenderer {
     this.scene.add(flowers);
   }
 
+  /**
+   * Crea el cielo procedural con shader que incluye:
+   * - Degradado día/noche/atardecer
+   * - Sol con disco y halo
+   * - Luna con cara y halo pulsante
+   * - Estrellas (solo de noche)
+   * - Textura panorámica si está disponible (sky.png/sky.jpg)
+   * También crea las mallas del sol y la luna con sus coronas.
+   */
   setupSky() {
     const skyGeo = new THREE.SphereGeometry(500, 48, 32);
     skyGeo.scale(-1, 1, 1);
@@ -451,6 +521,12 @@ export class ThreeRenderer {
     this.scene.add(this.moon);
   }
 
+  /**
+   * Genera una textura de glow radial en Canvas 2D.
+   * Usada para la corona del sol y los halos de la luna.
+   * @param {string} rgb - Color en formato "R,G,B" (ej: "255,236,170")
+   * @returns {THREE.CanvasTexture} Textura de glow
+   */
   makeRadialGlowTexture(rgb) {
     const c = document.createElement('canvas');
     c.width = c.height = 128;
@@ -469,6 +545,12 @@ export class ThreeRenderer {
 
   // Cara de la luna según la referencia "css night moon" (CodePen stazie/JjQqjeK):
   // disco con degradado lavanda→blanco y cráteres con borde claro y sombra interior.
+  /**
+   * Genera la textura de la cara de la luna en Canvas 2D.
+   * Incluye degradado lavanda→blanco y cráteres con borde claro y sombra interior.
+   * Referencia: CodePen "css night moon" de stazie/JjQqjeK.
+   * @returns {THREE.CanvasTexture} Textura de 512x512
+   */
   makeMoonFaceTexture() {
     const S = 512;
     const c = document.createElement('canvas');
@@ -533,6 +615,11 @@ export class ThreeRenderer {
     return tex;
   }
 
+  /**
+   * Genera un environment map PMREM desde el cielo procedural
+   * y lo aplica a toda la escena para reflexiones suaves en materiales PBR.
+   * Incluye un sol tenue en el envmap para dar dirección a los brillos.
+   */
   setupEnvironment() {
     // Genera un envmap PMREM desde el cielo procedural y lo aplica a toda la escena:
     // todos los materiales estándar del mapa pasan a reflejar el ambiente (suave).
@@ -568,10 +655,16 @@ export class ThreeRenderer {
     }
   }
 
+  /** Configura niebla exponencial con color base celeste. */
   setupFog() {
     this.scene.fog = new THREE.FogExp2(0x9fd4ff, 0.0038);
   }
 
+  /**
+   * Detecta la calidad del hardware y retorna un tier ('high', 'medium', 'low').
+   * Considera: user agent, núcleos de CPU, memoria del dispositivo y píxeles totales.
+   * @returns {'high'|'medium'|'low'}
+   */
   detectQuality() {
     const isMobile = /Mobi|Android/i.test(navigator.userAgent);
     const cores = navigator.hardwareConcurrency || 4;
@@ -583,6 +676,10 @@ export class ThreeRenderer {
   }
 
   // mode: 'auto' (según pantalla/calidad) o altura objetivo del buffer: 1080, 1440…
+  /**
+   * Establece el modo de resolución de renderizado.
+   * @param {string|number} mode - 'auto' o altura objetivo en píxeles (1080, 1440, etc.)
+   */
   setResolutionMode(mode) {
     const n = typeof mode === 'string' ? parseInt(mode, 10) : mode;
     this.resMode = Number.isFinite(n) && n >= 360 ? n : 'auto';
@@ -591,12 +688,21 @@ export class ThreeRenderer {
 
   // fps: número (0 o inválido = sin límite). El bucle llama a beginFrame() y
   // salta los frames sobrantes en lugar de renderizar más rápido que el límite.
+  /**
+   * Establece el límite de FPS. El bucle llama a beginFrame() y
+   * salta los frames que excedan el límite en lugar de renderizar más rápido.
+   * @param {number|string} fps - Número de FPS objetivo (0 o inválido = sin límite)
+   */
   setFpsLimit(fps) {
     const n = typeof fps === 'string' ? parseFloat(fps) : fps;
     this.fpsLimit = Number.isFinite(n) && n >= 10 ? n : null;
     this._lastFrame = 0;
   }
 
+  /**
+   * Verifica si el frame actual debe renderizarse según el límite de FPS.
+   * @returns {boolean} true si el frame debe renderizarse
+   */
   beginFrame() {
     if (!this.fpsLimit) return true;
     const now = performance.now();
@@ -605,6 +711,11 @@ export class ThreeRenderer {
     return true;
   }
 
+  /**
+   * Calcula el pixel ratio objetivo según el modo de resolución.
+   * @param {number} height - Altura del viewport en píxeles
+   * @returns {number} Pixel ratio a aplicar
+   */
   targetPixelRatio(height) {
     if (this.resMode === 'auto') {
       return Math.min(window.devicePixelRatio || 1, this.cfg.maxDPR);
@@ -614,6 +725,7 @@ export class ThreeRenderer {
     return THREE.MathUtils.clamp(this.resMode / height, 0.25, 4);
   }
 
+  /** Aplica el tamaño de renderizado actualizando pixel ratio, cámara y canvas. */
   applyRenderSize() {
     const { width, height } = this.getViewport();
     const pr = this.targetPixelRatio(height) * this.resScale;
@@ -624,6 +736,7 @@ export class ThreeRenderer {
     this.renderer.setSize(width, height);
     if (this.composer) this.composer.setSize(width, height);
   }
+  /** Configura listeners de resize con debounce por requestAnimationFrame. */
   setupResizeHandling() {
     let resizeTimer = null;
     const requestResize = () => {
@@ -640,6 +753,10 @@ export class ThreeRenderer {
     }
   }
 
+  /**
+   * Retorna las dimensiones del viewport considerando visualViewport (móvil).
+   * @returns {{width: number, height: number}}
+   */
   getViewport() {
     const vv = window.visualViewport;
     return {
@@ -648,10 +765,15 @@ export class ThreeRenderer {
     };
   }
 
+  /** Handler de resize: re-aplica tamaño de renderizado. */
   onResize() {
     this.applyRenderSize();
   }
 
+  /**
+   * Monitorea FPS promedio cada segundo y ajusta la resolución
+   * si el rendimiento es bajo (<45 FPS) o alto (>58 FPS).
+   */
   monitorPerformance() {
     const now = performance.now();
     if (!this._perfLast) {
@@ -669,6 +791,13 @@ export class ThreeRenderer {
     }
   }
 
+  /**
+   * Ajusta la escala de resolución según el FPS promedio.
+   * - Si FPS < 45: reduce resScale (mínimo 0.6)
+   * - Si FPS > 58: aumenta resScale (máximo 1.0)
+   * No ajusta si hay FPS limit activo y se está cerca del límite.
+   * @param {number} fps - FPS promedio del último segundo
+   */
   adjustResolution(fps) {
     if (!isFinite(fps)) return;
     // Con límite de FPS activo, acercarse al límite NO es bajo rendimiento
@@ -682,10 +811,24 @@ export class ThreeRenderer {
     }
   }
 
+  /**
+   * Retorna el delta time del frame actual, limitado a 1/30s máximo.
+   * @returns {number} Delta time en segundos
+   */
   getDelta() {
     return Math.min(this.clock.getDelta(), 1 / 30);
   }
 
+  /**
+   * Actualiza el ciclo día/noche completo:
+   * - Posición e intensidad del sol y la luna
+   * - Tintes del cielo (día, noche, atardecer)
+   * - Intensidad de todas las luces ambientales
+   * - Color de la niebla
+   * - Reflejos en el suelo
+   * Soporta modo automático (ciclo lento) y manual (hora fija).
+   * @param {number} time - Timestamp de performance.now()
+   */
   updateSun(time) {
     if (!this.sunLight || !this.skyUniforms) return;
 
@@ -782,6 +925,11 @@ export class ThreeRenderer {
     }
   }
 
+  /**
+   * Frame principal de renderizado.
+   * Actualiza el ciclo día/noche, renderiza con EffectComposer (bloom + film)
+   * y monitorea rendimiento para auto-escalado.
+   */
   render() {
     const time = performance.now();
     this.updateSun(time);
@@ -789,10 +937,12 @@ export class ThreeRenderer {
     this.monitorPerformance();
   }
 
+  /** Añade un objeto 3D a la escena. @param {THREE.Object3D} object */
   add(object) {
     this.scene.add(object);
   }
 
+  /** Elimina un objeto 3D de la escena. @param {THREE.Object3D} object */
   remove(object) {
     this.scene.remove(object);
   }

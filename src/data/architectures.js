@@ -1,3 +1,37 @@
+/**
+ * @file architectures.js
+ * @description Definiciones de las 6 arquitecturas de software del juego.
+ * Cada entrada contiene: metadatos, posición世界, color, y descripción
+ * educativa completa (qué es, cómo funciona, componentes, ventajas,
+ * desventajas, ejemplos reales y diagrama SVG).
+ *
+ * Las posiciones determinan la ubicación de cada edificio en el mundo 3D.
+ * Los colores se usan en edificios, caminos, balizas y UI.
+ */
+
+/**
+ * @typedef {Object} ArchitectureDescription
+ * @property {string} what - Definición de la arquitectura
+ * @property {string} how - Cómo funciona
+ * @property {string[]} components - Lista de componentes principales
+ * @property {string[]} advantages - Ventajas de la arquitectura
+ * @property {string[]} disadvantages - Desventajas de la arquitectura
+ * @property {string[]} examples - Ejemplos reales de uso
+ * @property {string} diagramSvg - Diagrama SVG inline
+ */
+
+/**
+ * @typedef {Object} ArchitectureDefinition
+ * @property {string} id - Identificador único (ej: 'microservicios')
+ * @property {number} order - Orden de presentación (1-6)
+ * @property {string} name - Nombre completo en mayúsculas
+ * @property {string} shortName - Nombre corto para UI
+ * @property {{x: number, z: number}} position - Posición世界 en el plano XZ
+ * @property {number} color - Color hexadecimal (ej: 0x00ffff)
+ * @property {ArchitectureDescription} description - Contenido educativo
+ */
+
+/** @type {ArchitectureDefinition[]} Array de definiciones de arquitecturas */
 export const architectures = [
   {
     id: 'microservicios',

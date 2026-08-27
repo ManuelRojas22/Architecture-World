@@ -1,3 +1,10 @@
+/**
+ * @class BuildingInfoPanel
+ * @description Panel alternativo de información de edificio (no utilizado
+ * activamente en el flujo principal; ArchitectureModal lo reemplaza).
+ * Renderiza secciones de: qué es, cómo funciona, componentes, ventajas,
+ * desventajas, ejemplos y diagrama SVG.
+ */
 export class BuildingInfoPanel {
   constructor() {
     this.element = document.createElement('div');
@@ -15,6 +22,10 @@ export class BuildingInfoPanel {
     document.addEventListener('keydown', this.keyHandler);
   }
 
+  /**
+   * Muestra el panel con la información de una arquitectura.
+   * @param {Object} arch - Arquitectura con propiedad description
+   */
   show(arch) {
     if (!arch) {
       this.hide();
@@ -64,15 +75,22 @@ export class BuildingInfoPanel {
     closeBtn.addEventListener('click', () => this.hide());
   }
 
+  /** Oculta el panel y limpia la referencia de arquitectura actual. */
   hide() {
     this.element.classList.add('hidden');
     this.currentArch = null;
   }
 
+  /** @returns {boolean} true si el panel está visible */
   isVisible() {
     return !this.element.classList.contains('hidden');
   }
 
+  /**
+   * Alterna el panel: si la misma arquitectura ya está abierta, la cierra;
+   * de lo contrario abre la nueva.
+   * @param {Object} arch - Arquitectura a mostrar
+   */
   toggle(arch) {
     if (this.currentArch && this.currentArch.id === arch.id && this.isVisible()) {
       this.hide();

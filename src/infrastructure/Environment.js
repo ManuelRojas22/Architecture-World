@@ -1,6 +1,22 @@
+/**
+ * @file Environment.js
+ * @description Construye todo el entorno 3D del mundo del juego: caminos curvos,
+ * plaza central con monumento holográfico, cuerpos de agua con shader, montañas,
+ * árboles instanciados, rocas, lámparas con luz puntual, luciérnagas, nubes,
+ * césped alto con viento en shader, polvo y mariposas. También gestiona
+ * la decoración temática de cada distrito de arquitectura.
+ */
+
 import * as THREE from 'three';
 import { architectures } from '../data/architectures.js';
 
+/**
+ * Suavizado tipo smoothstep de Hermite.
+ * @param {number} a - Límite inferior
+ * @param {number} b - Límite superior
+ * @param {number} x - Valor a evaluar
+ * @returns {number} Resultado entre 0 y 1
+ */
 function smoothstep(a, b, x) {
   const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
   return t * t * (3 - 2 * t);
@@ -8,7 +24,17 @@ function smoothstep(a, b, x) {
 
 const _lightPos = new THREE.Vector3();
 
+/**
+ * @class Environment
+ * @description Construye y gestiona todo el entorno del mundo 3D.
+ * Incluye generación procedural de terreno, caminos CatmullRom, elementos
+ * decorativos por distrito, sistemas de partículas y animaciones ambientales.
+ */
 export class Environment {
+  /**
+   * @param {THREE.Scene} scene - Escena Three.js donde se añaden los elementos
+   * @param {'high'|'medium'|'low'} [quality='high'] - Tier de calidad para ajustar cantidades
+   */
   constructor(scene, quality = 'high') {
     this.scene = scene;
     this.quality = quality;
@@ -54,6 +80,12 @@ export class Environment {
     this.curbMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 1, metalness: 0 });
   }
 
+  /**
+   * Construye todos los elementos del entorno en orden:
+   * caminos, plaza central, agua, montañas, lámparas, árboles, rocas,
+   * luciérnagas, nubes, partículas, luces puntuales y césped.
+   * Las cantidades se ajustan según el tier de calidad.
+   */
   buildAll() {
     this.buildPaths();
     this.buildCentralPlaza();
@@ -70,11 +102,22 @@ export class Environment {
     this.buildGrass();
   }
 
+  /**
+   * Muestra/oculta el césped instanciado.
+   * @param {boolean} visible
+   */
   setGrassVisible(visible) {
     if (this.grassMesh) this.grassMesh.visible = visible;
   }
 
   // ¿Es una zona "verde"? (lejos de plaza, edificios, pads, agua y caminos)
+  /**
+   * Verifica si una posición (x, z) es apta para colocar vegetación.
+   * Excluye: plaza central, edificios, pads de distrito, agua y caminos.
+   * @param {number} x
+   * @param {number} z
+   * @returns {boolean} true si es una zona "verde"
+   */
   isGreenSpot(x, z) {
     if (Math.hypot(x, z) < this.plazaRadius + 3) return false;
     for (const def of architectures) {
@@ -96,6 +139,12 @@ export class Environment {
   }
 
   // Césped alto instanciado por todo el mapa, con viento en shader
+  /**
+   * Genera césped alto instanciado con shader de viento.
+   * Cada brizna es un plano vertical afinado hacia la punta,
+   * con movimiento sinusoidal que simula viento y ráfagas.
+   * Las cantidades varían: low=3500, medium=8000, high=14000.
+   */
   buildGrass() {
     const q = this.quality;
     const count = q === 'low' ? 3500 : q === 'medium' ? 8000 : 14000;
@@ -179,6 +228,7 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     this.grassMesh = mesh;
   }
 
+  /** Recorre la escena y recopila todas las PointLights en un array. */
   collectPointLights() {
     this.pointLights = [];
     const _tmp = new THREE.Vector3();
@@ -191,6 +241,15 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     });
   }
 
+  /**
+   * Construye la plaza central circular con:
+   * - Suelo de piedra con borde toroidal
+   * - Hexágono decorativo central
+   * - Anillo interior
+   * - Brillo central pulsante
+   * - Monumento holográfico
+   * - 6 bancos y 6 farolas distribuidos radialmente
+   */
   buildCentralPlaza() {
     const pathHeight = 0.15;
     
@@ -278,6 +337,15 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
   }
 
   // Monumento central: núcleo holográfico con los 6 colores de los distritos.
+  /**
+   * Construye el monumento central de la plaza:
+   * - Plataforma hexagonal
+   * - Núcleo holográfico esférico con emissive
+   * - Haz cilíndrico translúcido
+   * - 3 anillos orbitales rotatorios
+   * - 6 balizas de color por distrito
+   * - 70 partículas orbitales
+   */
   buildCentralMonument() {
     const coreGroup = new THREE.Group();
 
@@ -364,6 +432,16 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     this.scene.add(coreGroup);
   }
 
+  /**
+   * Construye una cinta de geometría (ribbon) a lo largo de una curva.
+   * Genera vértices con ancho variable y normales calculadas.
+   * @param {THREE.Vector3[]} points - Puntos de la curva
+   * @param {number[]} widths - Ancho en cada punto
+   * @param {number} y - Altura Y constante
+   * @param {THREE.Material} material - Material a usar
+   * @param {number|Function} [offset=0] - Offset perpendicular (constante o función)
+   * @returns {THREE.Mesh} Malla de la cinta
+   */
   buildRibbon(points, widths, y, material, offset) {
     const positions = [];
     const indices = [];
@@ -397,6 +475,12 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     return mesh;
   }
 
+  /**
+   * Construye los caminos desde la plaza central a cada arquitectura.
+   * Cada camino incluye: calzada, aceras, bordes, línea central luminosa,
+   * farolas, bancos, árboles y flores distribuidos a lo largo de la curva.
+   * Termina en un pad circular con balizas de distrito.
+   */
   buildPaths() {
     const pathHeight = 0.15;
     architectures.forEach((def) => this.buildPathTo(def, pathHeight));
@@ -417,6 +501,14 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     });
   }
 
+  /**
+   * Construye un camino curvo desde la plaza hasta una arquitectura específica.
+   * Usa CatmullRom con perfiles de curvatura por distrito.
+   * Incluye: calzada, aceras, bordes, línea luminosa, farolas, bancos,
+   * árboles, flores, pad destino y decoración temática del distrito.
+   * @param {Object} def - Definición de la arquitectura
+   * @param {number} pathHeight - Altura Y del camino
+   */
   buildPathTo(def, pathHeight) {
     const bx = def.position.x;
     const bz = def.position.z;
@@ -568,6 +660,13 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     this.buildDistrictAmbience(def, p3, perp, dir);
   }
 
+  /**
+   * Añade decoración temática específica para cada distrito de arquitectura.
+   * @param {Object} def - Definición de la arquitectura
+   * @param {THREE.Vector3} padPos - Posición del pad destino
+   * @param {THREE.Vector3} perp - Vector perpendicular al camino
+   * @param {THREE.Vector3} dir - Vector dirección del camino
+   */
   buildDistrictAmbience(def, padPos, perp, dir) {
     const accent = def.color;
     const backX = padPos.x - dir.x * 14;
@@ -617,6 +716,13 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     }
   }
 
+  /**
+   * Crea un pilón de datos (poste con octaedro brillante y anillos orbitales).
+   * Usado en el distrito de Microservicios.
+   * @param {number} x - Posición X
+   * @param {number} z - Posición Z
+   * @param {number} color - Color del material emissive
+   */
   addDataPylon(x, z, color) {
     const poleMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2e, roughness: 0.5, metalness: 0.6 });
     const capMat = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 1.4, roughness: 0.2, metalness: 0.5 });
@@ -645,6 +751,13 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     this.scene.add(g);
   }
 
+  /**
+   * Crea un pad holográfico con cilindro rotatorio y luz puntual.
+   * Usado en el distrito de Microservicios.
+   * @param {number} x - Posición X
+   * @param {number} z - Posición Z
+   * @param {number} color - Color del material emissive
+   */
   addHologramPad(x, z, color) {
     const base = new THREE.Mesh(
       new THREE.CylinderGeometry(1.2, 1.2, 0.15, 8),
@@ -677,6 +790,13 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     this.scene.add(light);
   }
 
+  /**
+   * Crea un banner/bandera en un poste.
+   * Usado en el distrito de Monolítica.
+   * @param {number} x - Posición X
+   * @param {number} z - Posición Z
+   * @param {number} color - Color de la bandera
+   */
   addBanner(x, z, color) {
     const poleMat = new THREE.MeshStandardMaterial({ color: 0x3a3a3a, roughness: 0.6, metalness: 0.5 });
     const g = new THREE.Group();
@@ -694,6 +814,13 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     this.scene.add(g);
   }
 
+  /**
+   * Crea una estatua humanaide simplificada.
+   * Usada en el distrito de Monolítica.
+   * @param {number} x - Posición X
+   * @param {number} z - Posición Z
+   * @param {number} color - Color (no utilizado actualmente)
+   */
   addStatue(x, z, color) {
     const g = new THREE.Group();
     const body = new THREE.Mesh(
@@ -713,6 +840,13 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     this.scene.add(g);
   }
 
+  /**
+   * Crea una columna estratificada con bandas de colores.
+   * Usada en el distrito de En Capas.
+   * @param {number} x - Posición X
+   * @param {number} z - Posición Z
+   * @param {number} color - Color base
+   */
   addLayerColumn(x, z, color) {
     const g = new THREE.Group();
     const bands = [0xff00ff, 0xcc00cc, 0x990099, 0xff00ff];
@@ -735,6 +869,13 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     this.scene.add(g);
   }
 
+  /**
+   * Crea un kiosco con pantalla.
+   * Usado en el distrito de Headless.
+   * @param {number} x - Posición X
+   * @param {number} z - Posición Z
+   * @param {number} color - Color de la pantalla
+   */
   addKiosk(x, z, color) {
     const g = new THREE.Group();
     const body = new THREE.Mesh(
@@ -760,6 +901,13 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     this.scene.add(g);
   }
 
+  /**
+   * Crea una terminal vertical con pantalla grande.
+   * Usada en el distrito de Headless.
+   * @param {number} x - Posición X
+   * @param {number} z - Posición Z
+   * @param {number} color - Color de la pantalla
+   */
   addTerminal(x, z, color) {
     const g = new THREE.Group();
     const screen = new THREE.Mesh(
@@ -784,6 +932,15 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     this.scene.add(g);
   }
 
+  /**
+   * Crea un orbe flotante con glow y animación sinusoidal.
+   * Usado en distritos de Serverless y Eventos.
+   * @param {number} x - Posición X
+   * @param {number} y - Posición Y base
+   * @param {number} z - Posición Z
+   * @param {number} color - Color del material
+   * @param {number} amp - Amplitud de flotación
+   */
   addGlowOrb(x, y, z, color, amp) {
     const orb = new THREE.Mesh(
       new THREE.SphereGeometry(0.4, 16, 16),
@@ -810,6 +967,13 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     this.scene.add(glow);
   }
 
+  /**
+   * Crea un emisor de eventos con octaedro rotatorio, anillos y partículas orbitales.
+   * Usado en el distrito de Eventos.
+   * @param {number} x - Posición X
+   * @param {number} z - Posición Z
+   * @param {number} color - Color del material emissive
+   */
   addEventEmitter(x, z, color) {
     const g = new THREE.Group();
     const core = new THREE.Mesh(
@@ -849,6 +1013,13 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     this.scene.add(g);
   }
 
+  /**
+   * Crea un pod de función (caja blanca con brillo base).
+   * Usado en el distrito de Serverless.
+   * @param {number} x - Posición X
+   * @param {number} z - Posición Z
+   * @param {number} color - Color del brillo
+   */
   addFunctionPod(x, z, color) {
     const g = new THREE.Group();
     const pod = new THREE.Mesh(
@@ -871,6 +1042,10 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
   }
 
   // Lámparas exteriores adicionales alrededor del estanque.
+  /**
+   * Construye las lámparas exteriores alrededor del estanque principal.
+   * Coloca 6 lámparas en círculo y 1 adicional.
+   */
   buildLamps() {
     for (let i = 0; i < 6; i++) {
       const a = (i / 6) * Math.PI * 2 + Math.PI / 12;
@@ -883,6 +1058,12 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     this.addLamp(this.pondX - 22, this.pondZ + 4, true);
   }
 
+  /**
+   * Añade una lámpara a la escena y la registra para animación.
+   * @param {number} x - Posición X
+   * @param {number} z - Posición Z
+   * @param {boolean} withLight - Si true, incluye PointLight
+   */
   addLamp(x, z, withLight) {
     const lamp = this.makeLamp(x, z, withLight);
     this.scene.add(lamp);
@@ -890,6 +1071,15 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     this.lampFlickerOffsets.push(Math.random() * Math.PI * 2);
   }
 
+  /**
+   * Construye el modelo 3D de una lámpara de calle.
+   * Incluye: poste, brazo, carcasa, paneles de vidrio, techo cónico,
+   * glow esférico y opcionalmente PointLight.
+   * @param {number} x - Posición X
+   * @param {number} z - Posición Z
+   * @param {boolean} withLight - Si true, añade PointLight
+   * @returns {THREE.Group} Grupo de la lámpara
+   */
   makeLamp(x, z, withLight) {
     const group = new THREE.Group();
     const poleMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2e, roughness: 0.3, metalness: 0.7 });
@@ -970,6 +1160,13 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     return group;
   }
 
+  /**
+   * Crea un poste de puerta con capa esférica de color.
+   * Se coloca en las entradas de los caminos de distrito.
+   * @param {number} x - Posición X
+   * @param {number} z - Posición Z
+   * @param {number} color - Color de la esfera superior
+   */
   addGatePost(x, z, color) {
     const poleMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2e, roughness: 0.5, metalness: 0.6 });
     const capMat = new THREE.MeshStandardMaterial({
@@ -996,6 +1193,12 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     this.scene.add(group);
   }
 
+  /**
+   * Crea un árbol con tronco cilíndrico y Copa icosaédrica.
+   * @param {number} x - Posición X
+   * @param {number} z - Posición Z
+   * @param {number} [leafColor] - Color de las hojas (default: 0x2e7d32)
+   */
   addPathTree(x, z, leafColor) {
     const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5d4037, roughness: 1 });
     const leafMat = new THREE.MeshStandardMaterial({ color: leafColor ?? 0x2e7d32, roughness: 0.8 });
@@ -1013,6 +1216,11 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     this.scene.add(group);
   }
 
+  /**
+   * Crea una flor (esfera pequeña con color aleatorio y brillo).
+   * @param {number} x - Posición X
+   * @param {number} z - Posición Z
+   */
   addFlower(x, z) {
     const colors = [0xff6b6b, 0xffd93d, 0xff6bff, 0xffffff, 0xff8c42, 0x6bff6b];
     const color = colors[Math.floor(Math.random() * colors.length)];
@@ -1027,6 +1235,12 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     this.scene.add(flower);
   }
 
+  /**
+   * Crea una baliza de distrito: poste alto con esfera emissive y anillo.
+   * @param {number} x - Posición X
+   * @param {number} z - Posición Z
+   * @param {number} color - Color del material emissive
+   */
   addDistrictBeacon(x, z, color) {
     const poleMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2e, roughness: 0.5, metalness: 0.6 });
     const capMat = new THREE.MeshStandardMaterial({
@@ -1063,6 +1277,14 @@ diffuseColor.rgb *= mix(vec3(0.42, 0.58, 0.30), vec3(1.08, 1.05, 0.92), pow(vHgt
     this.scene.add(group);
   }
 
+  /**
+   * Construye los 4 cuerpos de agua del mundo:
+   * - Estanque principal con muelle y nenúfares
+   * - Lago del noreste
+   * - Laguna sur
+   * - Charca oeste
+   * Cada uno usa un shader de ondas animadas y tiene anillo de rocas.
+   */
   buildWater() {
     // Cuerpos de agua repartidos por el mapa (el estanque original + 3 nuevos)
     this.waterSpots = [
@@ -1165,6 +1387,11 @@ normal = normalize((viewMatrix * vec4(wNormal, 0.0)).xyz);`);
     this.scene.add(dock);
   }
 
+  /**
+   * Crea una roca compuesta (dodecaedro principal + menor).
+   * @param {number} [scale=1] - Escala de la roca
+   * @returns {THREE.Group} Grupo de la roca
+   */
   makeRock(scale = 1) {
     const group = new THREE.Group();
     const rockMat = new THREE.MeshStandardMaterial({ color: 0x7a7a76, roughness: 1 });
@@ -1183,6 +1410,11 @@ normal = normalize((viewMatrix * vec4(wNormal, 0.0)).xyz);`);
     return group;
   }
 
+  /**
+   * Genera luciérnagas alrededor del estanque principal.
+   * Cada una tiene movimiento sinusoidal con fase, velocidad y deambulación aleatorias.
+   * @param {number} count - Cantidad de luciérnagas
+   */
   buildFireflies(count) {
     const fireflyGeo = new THREE.SphereGeometry(0.05, 6, 6);
     const fireflyMat = new THREE.MeshBasicMaterial({
@@ -1214,6 +1446,11 @@ normal = normalize((viewMatrix * vec4(wNormal, 0.0)).xyz);`);
     }
   }
 
+  /**
+   * Genera nubes flotantes como grupos de esferas translúcidas.
+   * Cada nube tiene dirección y velocidad de movimiento aleatorias.
+   * @param {number} count - Cantidad de nubes
+   */
   buildClouds(count) {
     const cloudMat = new THREE.MeshStandardMaterial({
       color: 0xffffff,
@@ -1254,6 +1491,10 @@ normal = normalize((viewMatrix * vec4(wNormal, 0.0)).xyz);`);
     }
   }
 
+  /**
+   * Construye 8 montañas en los bordes del mundo.
+   * Cada una incluye: cono base (roca), copa de nieve y 10 árboles circundantes.
+   */
   buildMountains() {
     const mountainMat = new THREE.MeshStandardMaterial({ color: 0x55686c, roughness: 1 });
     const snowMat = new THREE.MeshStandardMaterial({ color: 0xf0f5f8, roughness: 0.8 });
@@ -1300,6 +1541,12 @@ normal = normalize((viewMatrix * vec4(wNormal, 0.0)).xyz);`);
     });
   }
 
+  /**
+   * Construye sistemas de partículas ambientales:
+   * - Polvo flotante (Points con BufferGeometry)
+   * - 15 mariposas (Planos con animación de alas)
+   * Las cantidades varían según calidad: low/medium/high.
+   */
   buildParticleSystems() {
     const q = this.quality;
     const dustCount = q === 'low' ? 100 : q === 'medium' ? 180 : 300;
@@ -1350,6 +1597,12 @@ normal = normalize((viewMatrix * vec4(wNormal, 0.0)).xyz);`);
     }
   }
 
+  /**
+   * Dispersa árboles de forma procedural por zonas verdes.
+   * Cada árbol puede tener hasta 3 copas (clusters) para dar volumen.
+   * Registra offsets de balanceo para animación posterior.
+   * @param {number} count - Cantidad objetivo de árboles
+   */
   scatterTreesInstanced(count) {
     const trunkGeo = new THREE.CylinderGeometry(0.2, 0.3, 2.5, 7);
     const trunkMat = new THREE.MeshStandardMaterial({ color: 0x6b4a2f, roughness: 0.9 });
@@ -1401,6 +1654,17 @@ normal = normalize((viewMatrix * vec4(wNormal, 0.0)).xyz);`);
     this.createTreeMeshes(positions, scales, rotations, leafIndices, trunkGeo, trunkMat, leafGeo, leafMats);
   }
 
+  /**
+   * Crea las mallas de árboles a partir de datos pre-calculados.
+   * @param {Float32Array} positions - Posiciones [x,y,z,...]
+   * @param {number[]} scales - Escalas por árbol
+   * @param {number[]} rotations - Rotaciones Y por árbol
+   * @param {number[]} leafIndices - Índice de material de hojas por árbol
+   * @param {THREE.CylinderGeometry} trunkGeo - Geometría del tronco
+   * @param {THREE.Material} trunkMat - Material del tronco
+   * @param {THREE.IcosahedronGeometry} leafGeo - Geometría de hojas
+   * @param {THREE.Material[]} leafMats - Materiales de hojas (4 variantes)
+   */
   createTreeMeshes(positions, scales, rotations, leafIndices, trunkGeo, trunkMat, leafGeo, leafMats) {
     for (let i = 0; i < positions.length; i += 3) {
       const x = positions[i];
@@ -1430,6 +1694,11 @@ normal = normalize((viewMatrix * vec4(wNormal, 0.0)).xyz);`);
     }
   }
 
+  /**
+   * Dispersa rocas de forma procedural por zonas verdes.
+   * Cada roca es un grupo con dodecaedro principal y menor.
+   * @param {number} count - Cantidad objetivo de rocas
+   */
   scatterRocksInstanced(count) {
     const rockGeo = new THREE.DodecahedronGeometry(1, 0);
     const rockMat = new THREE.MeshStandardMaterial({ color: 0x7a7a76, roughness: 1 });

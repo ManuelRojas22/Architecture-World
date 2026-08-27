@@ -1,7 +1,30 @@
+/**
+ * @file WelcomeScreen.js
+ * @description Pantalla de bienvenida con 4 fases: intro animada, menú principal,
+ * pantalla de continuar (usuarios recurrentes) y pantalla de carga simulada.
+ * Incluye sistema de partículas en Canvas 2D, vista previa de arquitecturas
+ * y gestión de stats del jugador.
+ */
+
 import { Storage } from '../infrastructure/Storage.js';
 import { architectures } from '../data/architectures.js';
 
+/**
+ * @class WelcomeScreen
+ * @description Interfaz completa de bienvenida que se muestra antes del juego.
+ * Gestiona transiciones entre fases con animaciones CSS y un canvas de
+ * partículas de fondo con líneas técnicas rotativas.
+ */
 export class WelcomeScreen {
+  /**
+   * @param {() => void} onStart - Callback al iniciar el juego
+   * @param {() => void} onCompendium - Callback al abrir compendio
+   * @param {() => void} onSettings - Callback al abrir configuración
+   * @param {boolean} isReturningUser - true si tiene progreso guardado
+   * @param {{discovered: number, completed: number, level: number, xp: number, xpMax: number}} stats
+   *   Estadísticas del jugador (solo para usuarios recurrentes)
+   * @param {string} [version='1.1.2'] - Versión del juego
+   */
   constructor(onStart, onCompendium, onSettings, isReturningUser, stats, version) {
     this.onStart = onStart;
     this.onCompendium = onCompendium;
@@ -22,6 +45,10 @@ export class WelcomeScreen {
     this.startIntro();
   }
 
+  /**
+   * Crea el elemento DOM completo con todas las fases:
+   * intro, main, returning, loading.
+   */
   createElement() {
     this.element = document.createElement('div');
     this.element.id = 'welcome-screen';
@@ -177,6 +204,10 @@ export class WelcomeScreen {
     `;
   }
 
+  /**
+   * Vincula event listeners de botones (data-action) y teclado
+   * (Enter/Space para avanzar, Escape para omitir).
+   */
   bindEvents() {
     this.element.querySelectorAll('[data-action]').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -196,6 +227,10 @@ export class WelcomeScreen {
     document.addEventListener('keydown', this.keyHandler);
   }
 
+  /**
+   * Inicia la fase de intro con canvas de partículas.
+   * Transiciona automáticamente a main después de 1.8 segundos.
+   */
   startIntro() {
     this.currentPhase = 'intro';
     const introEl = this.element.querySelector('#welcome-intro');
@@ -214,11 +249,17 @@ export class WelcomeScreen {
     }, 1800);
   }
 
+  /** Omite la intro y transiciona directamente a la fase principal. */
   skipIntro() {
     if (this.currentPhase !== 'intro') return;
     this.transitionToMain();
   }
 
+  /**
+   * Transición de la fase intro a la fase principal.
+   * Muestra 'welcome-main' para nuevos usuarios o 'welcome-returning'
+   * para usuarios con progreso existente.
+   */
   transitionToMain() {
     if (this.transitioned) return;
     this.transitioned = true;
@@ -246,6 +287,9 @@ export class WelcomeScreen {
     }, 600);
   }
 
+  /**
+   * Rellena el grid de vista previa de arquitecturas con nombre y color.
+   */
   populateArchitectures() {
     const archList = this.element.querySelector('#arch-list');
     const icons = ['◈', '◆', '◇', '◆', '◈', '◇'];
@@ -262,6 +306,10 @@ export class WelcomeScreen {
     }).join('');
   }
 
+  /**
+   * Maneja las acciones de los botones del menú.
+   * @param {string} action - Acción: 'start', 'continue', 'compendium', 'settings', 'newgame'
+   */
   handleAction(action) {
     const btn = this.element.querySelector(`[data-action="${action}"]`);
     if (btn) btn.classList.add('pressed');
@@ -290,6 +338,10 @@ export class WelcomeScreen {
     }
   }
 
+  /**
+   * Inicia la transición a la pantalla de carga.
+   * Oculta el menú actual y muestra la barra de progreso.
+   */
   startGame() {
     this.currentPhase = 'loading';
     const mainEl = this.element.querySelector('#welcome-main');
@@ -309,6 +361,10 @@ export class WelcomeScreen {
     }, 400);
   }
 
+  /**
+   * Simula una barra de progreso de carga con mensajes secuenciales.
+   * Al llegar al 100%, oculta el welcome screen y ejecuta onStart.
+   */
   simulateLoading() {
     const messages = [
       'Construyendo el mundo...',
@@ -357,6 +413,10 @@ export class WelcomeScreen {
     requestAnimationFrame(updateLoading);
   }
 
+  /**
+   * Inicializa el canvas 2D con sistema de partículas:
+   * 40 partículas circulares y 15 líneas técnicas rotativas.
+   */
   initCanvas() {
     const canvas = this.element.querySelector('#welcome-canvas');
     const ctx = canvas.getContext('2d');
@@ -391,6 +451,11 @@ export class WelcomeScreen {
     }));
   }
 
+  /**
+   * Bucle de animación del canvas de partículas.
+   * Renderiza: líneas técnicas, partículas con conexiones,
+   * y anillos concéntricos pulsantes durante la fase intro.
+   */
   animateParticles() {
     if (!this.ctx || !this.canvas) return;
     
@@ -473,6 +538,10 @@ export class WelcomeScreen {
     render();
   }
 
+  /**
+   * Oculta el welcome screen con animación de salida.
+   * Limpia canvas, event listeners y ejecuta callback onStart.
+   */
   hide() {
     if (this.hidden) return;
     this.hidden = true;

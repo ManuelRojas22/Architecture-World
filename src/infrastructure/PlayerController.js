@@ -1,7 +1,27 @@
+/**
+ * @file PlayerController.js
+ * @description Controla el input del teclado/ratón, la cámara (primera persona
+ * e isométrica) y la sincronización con el modelo Player. Construye un
+ * personaje humanoid fusionado (voxel-like) optimizado con mergeGeometries.
+ */
+
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
+/**
+ * @class PlayerController
+ * @description Gestiona el ciclo de vida del control del jugador:
+ * - Input de teclado (WASD, Shift, Space, V)
+ * - Ratón con pointer lock (solo en primera persona)
+ * - Dos vistas: primera persona e isométrica (toggle con V)
+ * - Modelo 3D del jugador visible solo en vista isométrica
+ * - Física delegada al modelo Player
+ */
 export class PlayerController {
+  /**
+   * @param {ThreeRenderer} renderer - Motor de renderizado (acceso a cámara y escena)
+   * @param {Player} player - Modelo de física del jugador
+   */
   constructor(renderer, player) {
     this.renderer = renderer;
     this.player = player;
@@ -29,6 +49,13 @@ export class PlayerController {
     this.setupListeners();
   }
 
+  /**
+   * Construye el modelo 3D del jugador (humanoid voxel-like).
+   * Crea geometrías para cada parte del cuerpo (piernas, torso, brazos,
+   * cabeza, pelo, mochila, ojos), las agrupa por material y las fusiona
+   * con mergeGeometries para optimizar el renderizado.
+   * @returns {THREE.Group} Grupo con todas las partes del jugador
+   */
   buildPlayerMesh() {
     const skinMat = new THREE.MeshStandardMaterial({ color: 0xffdbac, roughness: 0.6 });
     const shirtMat = new THREE.MeshStandardMaterial({ color: 0x2d6bc4, roughness: 0.7, metalness: 0.1 });
@@ -102,6 +129,10 @@ export class PlayerController {
     return group;
   }
 
+  /**
+   * Configura event listeners de teclado, ratón y pointer lock.
+   * Incluye lógica de reintento de pointer lock (máximo 5 intentos).
+   */
   setupListeners() {
     window.addEventListener('keydown', (e) => this.onKey(e, true));
     window.addEventListener('keyup', (e) => this.onKey(e, false));
@@ -112,6 +143,10 @@ export class PlayerController {
     this.lockAttempts = 0;
   }
 
+  /**
+   * Solicita pointer lock en el canvas del renderer.
+   * Si falla, programa un reintento después de 1.3 segundos.
+   */
   acquirePointerLock() {
     const el = this.renderer.renderer.domElement;
     if (document.pointerLockElement === el || this.lockRetryTimer) return;
@@ -126,6 +161,10 @@ export class PlayerController {
     }
   }
 
+  /**
+   * Programa un reintento de pointer lock después de 1.3 segundos.
+   * Solo programa uno a la vez y respeta el límite de 5 intentos.
+   */
   scheduleLockRetry() {
     if (this.lockRetryTimer) return;
     this.lockAttempts++;
@@ -135,6 +174,11 @@ export class PlayerController {
     }, 1300);
   }
 
+  /**
+   * Procesa eventos de teclado (keydown/keyup).
+   * @param {KeyboardEvent} e - Evento del teclado
+   * @param {boolean} down - true si es keydown, false si es keyup
+   */
   onKey(e, down) {
     switch (e.code) {
       case 'KeyW': this.input.forward = down; break;
@@ -151,6 +195,11 @@ export class PlayerController {
     }
   }
 
+  /**
+   * Alterna entre vista isométrica y primera persona.
+   * - Isométrica: muestra modelo del jugador, cámara elevada
+   * - Primera persona: oculta modelo, cámara a altura de ojos
+   */
   toggleView() {
     this.isometric = !this.isometric;
     this.firstPerson = !this.isometric;
@@ -163,8 +212,17 @@ export class PlayerController {
     }
   }
 
+  /**
+   * Establece la sensibilidad del ratón.
+   * @param {number} val - Multiplicador de sensibilidad (1 = normal)
+   */
   setMouseSensitivity(val) { this.mouseSensitivity = val; }
 
+  /**
+   * Procesa el movimiento del ratón para rotar la cámara.
+   * Solo funciona en primera persona con pointer lock activo.
+   * @param {MouseEvent} e
+   */
   onMouseMove(e) {
     if (!this.isometric && document.pointerLockElement === this.renderer.renderer.domElement) {
       this.yaw -= e.movementX * 0.002 * this.mouseSensitivity;
@@ -172,6 +230,11 @@ export class PlayerController {
     }
   }
 
+  /**
+   * Handler de cambio de pointer lock.
+   * Resetea contador de intentos y cancela reintentos pendientes
+   * cuando se obtiene el lock exitosamente.
+   */
   onPointerLockChange() {
     if (document.pointerLockElement === this.renderer.renderer.domElement) {
       this.lockAttempts = 0;
@@ -182,6 +245,14 @@ export class PlayerController {
     }
   }
 
+  /**
+   * Actualiza el controller cada frame:
+   * 1. Calcula dirección de movimiento según vista (primera persona o isométrica)
+   * 2. Aplica velocidad al modelo Player
+   * 3. Ejecuta update(dt) del Player (física)
+   * 4. Sincroniza posición de cámara y modelo visual
+   * @param {number} dt - Delta time en segundos
+   */
   update(dt) {
     if (!this.enabled) return;
 

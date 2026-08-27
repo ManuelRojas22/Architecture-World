@@ -1,3 +1,9 @@
+/**
+ * @class EndgameScreen
+ * @description Pantalla de victoria que se muestra al descubrir todas las
+ * arquitecturas. Incluye mensaje de felicitación, estadísticas y una
+ * animación de confeti con 100 partículas de colores aleatorios.
+ */
 export class EndgameScreen {
   constructor() {
     this.el = document.createElement('div');
@@ -13,12 +19,20 @@ export class EndgameScreen {
     this.el.querySelector('#restart').addEventListener('click', () => location.reload());
   }
 
+  /**
+   * Muestra la pantalla de victoria con estadísticas.
+   * @param {{discovered: number, total: number}} stats - Estadísticas del juego
+   */
   show(stats) {
     this.statsEl.textContent = `Descubiertas: ${stats.discovered} / ${stats.total}`;
     this.el.classList.remove('hidden');
     this.confetti();
   }
 
+  /**
+   * Genera 100 partículas de confeti con animación CSS.
+   * Cada partícula tiene color aleatorio, duración 2-4s y rotación 720°.
+   */
   confetti() {
     for (let i=0;i<100;i++) {
       const p = document.createElement('div');

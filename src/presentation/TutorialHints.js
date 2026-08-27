@@ -1,3 +1,10 @@
+/**
+ * @class TutorialHints
+ * @description Sistema de pistas de tutorial y indicadores de misión.
+ * Muestra secuencialmente hints de controles (WASD, Mouse, Shift, Space, E)
+ * con auto-avance cada 3.5 segundos. También gestiona el indicador de
+ * la primera misión que apunta hacia la arquitectura más cercana.
+ */
 export class TutorialHints {
   constructor() {
     this.element = this.createElement();
@@ -14,6 +21,7 @@ export class TutorialHints {
     this.autoAdvanceTimeout = null;
   }
 
+  /** Crea el contenedor DOM para las pistas y lo añade al body. */
   createElement() {
     const el = document.createElement('div');
     el.className = 'tutorial-hints';
@@ -23,10 +31,16 @@ export class TutorialHints {
     return el;
   }
 
+  /** Inicia la secuencia de pistas mostrando la primera. */
   start() {
     this.showNextHint();
   }
 
+  /**
+   * Muestra la siguiente pista de la secuencia.
+   * Cada pista se muestra con animación de entrada y se oculta
+   * automáticamente después de 3.5 segundos.
+   */
   showNextHint() {
     this.currentHint++;
     if (this.currentHint >= this.hints.length) {
@@ -56,6 +70,10 @@ export class TutorialHints {
     }, 3500);
   }
 
+  /**
+   * Oculta la pista actual con animación de salida y
+   * programa la siguiente pista después de 300ms.
+   */
   hideCurrentHint() {
     const card = this.element.querySelector('.hint-card');
     if (card) {
@@ -68,12 +86,17 @@ export class TutorialHints {
     }
   }
 
+  /** Oculta todas las pistas y cancela timeouts pendientes. */
   hide() {
     if (this.autoAdvanceTimeout) clearTimeout(this.autoAdvanceTimeout);
     if (this.hintTimeout) clearTimeout(this.hintTimeout);
     this.element.classList.add('hidden');
   }
 
+  /**
+   * Muestra el indicador de la primera misión apuntando a una posición.
+   * @param {{x: number, z: number}} targetPosition - Posición del objetivo
+   */
   showMissionIndicator(targetPosition) {
     this.hide();
     this.element.classList.remove('hidden');
@@ -97,11 +120,16 @@ export class TutorialHints {
     this.missionUpdateInterval = setInterval(() => this.updateMissionArrow(targetPosition), 100);
   }
 
+  /**
+   * Actualiza la dirección de la flecha del indicador de misión.
+   * @param {{x: number, z: number}} targetPosition - Posición del objetivo
+   */
   updateMissionArrow(targetPosition) {
     // This will be updated by GameManager with player position
     // For now, just show the indicator
   }
 
+  /** Oculta el indicador de misión con animación de salida. */
   hideMissionIndicator() {
     if (this.missionUpdateInterval) {
       clearInterval(this.missionUpdateInterval);

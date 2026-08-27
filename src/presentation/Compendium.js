@@ -1,4 +1,14 @@
+/**
+ * @class Compendium
+ * @description Cuaderno de arquitecturas de software. Muestra un grid de tarjetas
+ * con todas las arquitecturas: las descubiertas son clickeables (abren el modal
+ * de detalles) y las bloqueadas muestran un estado "locked".
+ */
 export class Compendium {
+  /**
+   * @param {ProgressManager} progressManager - Gestor de progreso
+   * @param {Object[]} architectures - Lista de definiciones de arquitecturas
+   */
   constructor(progressManager, architectures) {
     this.progressManager = progressManager;
     this.architectures = architectures;
@@ -13,11 +23,17 @@ export class Compendium {
     this.render();
   }
 
+  /** Alterna la visibilidad del compendio y re-renderiza al abrir. */
   toggle() {
     this.el.classList.toggle('hidden');
     if (!this.el.classList.contains('hidden')) this.render();
   }
 
+  /**
+   * Renderiza el grid de tarjetas de arquitecturas.
+   * Cada tarjeta muestra: icono (primera letra), nombre, estado y número.
+   * Las tarjetas descubiertas disparan evento 'arch-open' al hacer clic.
+   */
   render() {
     this.grid.innerHTML = '';
     this.architectures.forEach(def => {

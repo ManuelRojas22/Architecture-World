@@ -1,4 +1,14 @@
+/**
+ * @class ArchitectureModal
+ * @description Modal detallado de arquitectura de software. Se abre al interactuar
+ * con un edificio (tecla E) o desde el Compendio. Muestra información educativa:
+ * qué es, cómo funciona, componentes, ventajas, desventajas, ejemplos reales
+ * y un diagrama SVG. Se cierra con E, Escape o el botón de cerrar.
+ */
 export class ArchitectureModal {
+  /**
+   * @param {ProgressManager} progressManager - Para verificar estado de descubrimiento
+   */
   constructor(progressManager) {
     this.progressManager = progressManager;
     this.overlay = document.createElement('div');
@@ -18,14 +28,30 @@ export class ArchitectureModal {
     window.addEventListener('keydown', (e) => { if(e.key==='Escape') this.hide(); });
   }
 
+  /**
+   * Convierte un número entero de color a string hexadecimal.
+   * @param {number} color - Color en formato 0xRRGGBB
+   * @returns {string} Color en formato '#RRGGBB'
+   */
   toHex(color) {
     return '#' + color.toString(16).padStart(6, '0');
   }
 
+  /**
+   * Genera HTML de una lista de chips (ventajas, desventajas, etc.).
+   * @param {string[]} items - Elementos a mostrar
+   * @param {string} cls - Clase CSS adicional
+   * @returns {string} HTML de la lista
+   */
   chipList(items, cls) {
     return `<ul class="chip-list ${cls}">${items.map(i => `<li>${i}</li>`).join('')}</ul>`;
   }
 
+  /**
+   * Muestra el modal con la información completa de una arquitectura.
+   * Bloquea el scroll del body y libera el pointer lock del canvas.
+   * @param {Object} arch - Definición de la arquitectura (desde ArchitectureManager)
+   */
   show(arch) {
     if (!arch) return;
     this.currentArch = arch;
@@ -91,6 +117,7 @@ export class ArchitectureModal {
     if (document.pointerLockElement) document.exitPointerLock();
   }
 
+  /** Oculta el modal, restaura scroll y dispara evento 'arch-close'. */
   hide() {
     this.overlay.classList.add('hidden');
     this.currentArch = null;
@@ -98,6 +125,7 @@ export class ArchitectureModal {
     window.dispatchEvent(new Event('arch-close'));
   }
 
+  /** @returns {boolean} true si el modal está visible */
   isVisible() {
     return !this.overlay.classList.contains('hidden');
   }

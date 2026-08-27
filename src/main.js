@@ -1,3 +1,10 @@
+/**
+ * @file main.js
+ * @description Punto de entrada principal de Architecture World.
+ * Inicializa el juego, gestiona la pantalla de bienvenida, configuración
+ * de opciones, eventos globales y ciclo de vida de la aplicación.
+ */
+
 import { GameManager } from './application/GameManager.js';
 import { ArchitectureLabel } from './presentation/ArchitectureLabel.js';
 import { WelcomeScreen } from './presentation/WelcomeScreen.js';
@@ -16,6 +23,11 @@ window.addEventListener('unhandledrejection', (e) => {
   showErrorOverlay(String(e.reason || 'Promise rechazada'));
 });
 
+/**
+ * Muestra un overlay fijo en la parte inferior con mensajes de error.
+ * Acumula múltiples errores separados por líneas en blanco.
+ * @param {string} message - Mensaje de error a mostrar
+ */
 function showErrorOverlay(message) {
   let overlay = document.getElementById('error-overlay');
   if (!overlay) {
@@ -32,6 +44,11 @@ let tutorialHints = null;
 let introModal = null;
 
 let toastTimer = null;
+/**
+ * Muestra un toast temporal en pantalla.
+ * @param {string} message - Mensaje a mostrar
+ * @param {boolean} [isError=false] - Si estrue, aplica estilo de error
+ */
 function showToast(message, isError = false) {
   const toast = document.getElementById('toast');
   if (!toast) return;
@@ -42,6 +59,11 @@ function showToast(message, isError = false) {
   toastTimer = setTimeout(() => toast.classList.add('hidden'), 3200);
 }
 
+/**
+ * Inicializa el juego completo.
+ * Carga datos de Storage, detecta si es usuario recurrente,
+ * y crea la pantalla de bienvenida con callbacks apropiados.
+ */
 function initGame() {
   console.log(`[BUILD ${GAME_VERSION}] Script cargado`);
 
@@ -76,6 +98,11 @@ function initGame() {
   );
 }
 
+/**
+ * Callback ejecutado al completar la pantalla de bienvenida.
+ * Crea GameManager, labels de arquitecturas, y gestiona intro/tutorial.
+ * @param {boolean} isReturningUser - true si el usuario ya tiene progreso guardado
+ */
 function onWelcomeComplete(isReturningUser) {
   console.log('[GAME] Welcome screen complete, initializing GameManager');
   try {
@@ -99,6 +126,10 @@ function onWelcomeComplete(isReturningUser) {
   }
 }
 
+/**
+ * Muestra el modal de introducción para usuarios nuevos.
+ * Al completar, inicia tutorial e indicador de misión.
+ */
 function showIntroModal() {
   introModal = new IntroModal(() => {
     startTutorialHints();
@@ -106,11 +137,18 @@ function showIntroModal() {
   });
 }
 
+/**
+ * Inicia el sistema de pistas de tutorial (WASD, Mouse, Shift, Space, E).
+ */
 function startTutorialHints() {
   tutorialHints = new TutorialHints();
   tutorialHints.start();
 }
 
+/**
+ * Muestra el indicador de la primera misión apuntando a la primera arquitectura.
+ * Oculta el indicador cuando el jugador se acerca a menos de 30 unidades.
+ */
 function showMissionIndicator() {
   if (game && tutorialHints) {
     const firstArch = architectures[0];
@@ -132,12 +170,18 @@ function showMissionIndicator() {
   }
 }
 
+/**
+ * Abre/cierra el compendio de arquitecturas descubiertas.
+ */
 function openCompendium() {
   if (game && game.compendium) {
     game.compendium.toggle();
   }
 }
 
+/**
+ * Abre/cierra el panel de configuración.
+ */
 function openSettings() {
   const panel = document.getElementById('settings-panel');
   if (panel) panel.classList.toggle('hidden');
@@ -166,6 +210,10 @@ const SETTINGS_DEFAULTS = {
   'opt-day-time': 12,
 };
 
+/**
+ * Carga configuración guardada desde localStorage.
+ * @returns {Object} Objeto con pares id-valor de configuración
+ */
 function loadSettings() {
   try {
     return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {};
@@ -174,10 +222,19 @@ function loadSettings() {
   }
 }
 
+/**
+ * Guarda configuración en localStorage.
+ * @param {Object} settings - Objeto con pares id-valor de configuración
+ */
 function saveSettings(settings) {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
 }
 
+/**
+ * Configura toda la interfaz de opciones: paneles, controles, atajos de teclado,
+ * exportar/importar progreso, y restaurar valores por defecto.
+ * @param {GameManager} game - Instancia del juego activo
+ */
 function setupSettingsUI(game) {
   const panel = document.getElementById('settings-panel');
   const helpPanel = document.getElementById('help-panel');
@@ -345,6 +402,10 @@ function setupSettingsUI(game) {
   }
 }
 
+/**
+ * Configura eventos globales de la ventana (descubrimiento de arquitecturas).
+ * @param {GameManager} game - Instancia del juego activo
+ */
 function setupGlobalEvents(game) {
   window.addEventListener('arch-discovered', (e) => {
     const arch = e.detail;
